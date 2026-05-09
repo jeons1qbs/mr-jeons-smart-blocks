@@ -78,7 +78,7 @@ namespace QBS {
                     music.ringTone(Math.round(freqHz + smoothShift));
 
                     // 4. Wait a tiny bit, then move time forward
-                    basic.pause(stepMs);
+                    //basic.pause(stepMs);
                     timeMs += stepMs;
 
                     // 5. Reset time after 0.8 seconds to prevent the number from getting too large
