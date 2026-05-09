@@ -9,7 +9,7 @@ namespace QBS {
     export enum SoundEffect {
         //% block="straight sound ➖"
         None = 0,
-        //% block="smooth wobbly sound 〰️"
+        //% block="beautiful vibrato 〰️"
         Vibrato = 1
     }
 
@@ -52,24 +52,24 @@ namespace QBS {
     //% weight=80
     export function advancedPlayContinuous(freqHz: number, effect: SoundEffect): void {
         if (effect === SoundEffect.Vibrato) {
-            // 1. Get the current running time of the micro:bit in milliseconds
+            // 1. Get current running time of the micro:bit
             let timeMs = input.runningTime();
-            let cycleTimeMs = 800;
 
-            // 2. Use modulo (%) to keep our time math nicely inside the 0-800 window
+            // 2. RESEARCH APPLIED: 5 Hz Vibrato Rate = 200ms per cycle
+            let cycleTimeMs = 200;
             let timeInCycle = timeMs % cycleTimeMs;
 
-            // 3. Calculate our position on the Sine wave (from 0 to 2*PI)
+            // 3. Calculate position on the Sine wave
             let angle = (timeInCycle / cycleTimeMs) * 2 * Math.PI;
 
-            // 4. Calculate the 1/4 pitch shift
-            let maxPitchShift = freqHz * 0.029;
+            // 4. RESEARCH APPLIED: ~1.5% frequency shift (subtle, beautiful depth)
+            let maxPitchShift = freqHz * 0.015;
             let smoothShift = Math.sin(angle) * maxPitchShift;
 
-            // 5. Instantly play the adjusted frequency and exit the block
+            // 5. Instantly play adjusted frequency and exit block
             music.ringTone(Math.round(freqHz + smoothShift));
         } else {
-            // Instantly play the flat frequency and exit the block
+            // Instantly play flat frequency and exit block
             music.ringTone(freqHz);
         }
     }
