@@ -11,7 +11,8 @@
         "main.ts",
         "README.md",
         "docs/play-note-step.md",
-        "_locales/en-GB/docs/play-note-step.md"
+        "_locales/en-GB/docs/play-note-step.md",
+        "docs/play-continuous-note.md"
     ],
     "testFiles": [
         "test.ts"
