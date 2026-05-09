@@ -12,7 +12,8 @@
         "README.md",
         "docs/play-note-step.md",
         "_locales/en-GB/docs/play-note-step.md",
-        "docs/play-continuous-note.md"
+        "docs/play-continuous-note.md",
+        "docs/stop-continuous-music.md"
     ],
     "testFiles": [
         "test.ts"
