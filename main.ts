@@ -60,7 +60,7 @@ namespace QBS {
 
             control.inBackground(function () {
                 let timeMs = 0;
-                const cycleTimeMs = 800; // 0.8 seconds per full wave cycle
+                const cycleTimeMs = 1800; // 0.8 seconds per full wave cycle
                 const stepMs = 40;       // update pitch every 40 ms for smoothness
 
                 // 1/4 pitch (quarter tone) is roughly a 2.9% shift in frequency
@@ -78,7 +78,7 @@ namespace QBS {
                     music.ringTone(Math.round(freqHz + smoothShift));
 
                     // 4. Wait a tiny bit, then move time forward
-                    //basic.pause(stepMs);
+                    basic.pause(stepMs);
                     timeMs += stepMs;
 
                     // 5. Reset time after 0.8 seconds to prevent the number from getting too large
