@@ -1,5 +1,6 @@
 {
     "name": "Mr Jeon's smart blocks",
+    "version": "0.0.1",
     "description": "",
     "dependencies": {
         "core": "*",
