@@ -1,87 +1,87 @@
 /**
- * Custom blocks for QBS!
+ * QBS Expressive Music Extension
  */
 //% color=#E3008C icon="\uf028" weight=100
 //% groups='["Music"]'
-//% block="QBS"
 namespace QBS {
 
     export enum SoundEffect {
         //% block="straight sound ➖"
         None = 0,
-        //% block="beautiful vibrato 〰️"
+        //% block="expressive vibrato 〰️"
         Vibrato = 1
     }
 
-    // Pre-calculated frequencies for the C Major scale.
     const cScaleFreqs = [
         196, 220, 247, 262, 294, 330, 349, 392, 440,
         494, 523, 587, 659, 698, 784, 880, 988, 1047, 1175
     ];
 
     /**
-     * Plays a continuous step on the C Major scale. 
-     * Put this in a 'forever' loop if your note changes constantly!
-     * @param note a number from 0 to 18, eg: 3
-     * @param effect choose whether to add a beautiful smooth vibrato effect
+     * Plays a note that responds to how you move and touch the micro:bit.
+     * Tilt Forward/Back for Sharps/Flats. 
+     * The force of your touch controls Volume.
+     * @param note the scale index (0-18), eg: 3
+     * @param effect choose whether to add vibrato
      */
-    //% block="🎵 play continuous note $note || with $effect"
+    //% block="🎵 play expressive note $note || effect $effect"
     //% group="Music"
     //% note.min=0 note.max=18 note.defl=3
     //% effect.defl=SoundEffect.None
     //% expandableArgumentMode="toggle"
-    //% help="qbs-ext/docs/play-continuous-note"
     //% weight=90
-    export function playContinuousNote(note: number, effect?: SoundEffect): void {
+    export function playExpressiveNote(note: number, effect?: SoundEffect): void {
         let safeNote = Math.max(0, Math.min(18, Math.round(note)));
-        let freqHz = cScaleFreqs[safeNote];
+        let baseFreq = cScaleFreqs[safeNote];
 
-        advancedPlayContinuous(freqHz, effect);
-    }
+        // --- 1. INTERNAL INTENSITY (The "Tap Force") ---
+        // We calculate the intensity right here inside the block.
+        let shock = Math.abs(input.acceleration(Dimension.Strength) - 1023);
+        // Map raw shock (0-1500) to intensity (0-100)
+        let intensity = Math.max(0, Math.min(100, Math.round(Math.map(shock, 0, 1500, 0, 100))));
 
-    /**
-     * Advanced: Play a specific continuous raw frequency.
-     * @param freqHz the exact pitch in Hertz, eg: 440
-     * @param effect the sound effect to apply
-     */
-    //% block="🔊 play exact continuous pitch $freqHz with $effect"
-    //% group="Music"
-    //% freqHz.min=130 freqHz.max=2000 freqHz.defl=440
-    //% advanced=true
-    //% help="qbs-ext/docs/advanced-play-continuous"
-    //% weight=80
-    export function advancedPlayContinuous(freqHz: number, effect: SoundEffect): void {
+        // --- 2. VOLUME MAPPING ---
+        // 0 intensity -> Vol 30 | 80+ intensity -> Vol 255
+        let vol = Math.map(intensity, 0, 80, 30, 255);
+        vol = Math.max(30, Math.min(255, vol));
+        music.setVolume(vol);
+
+        // --- 3. PITCH SHIFT (Forward/Backward Tilt) ---
+        // Threshold: 20 degrees is ~340 milli-g
+        let tiltY = input.acceleration(Dimension.Y);
+        let finalFreq = baseFreq;
+
+        if (tiltY < -340) {
+            finalFreq = baseFreq * 1.0595; // Sharp
+        } else if (tiltY > 340) {
+            finalFreq = baseFreq * 0.9439; // Flat
+        }
+
+        // --- 4. SOUND OUTPUT & DYNAMIC VIBRATO ---
         if (effect === SoundEffect.Vibrato) {
-            // 1. Get current running time of the micro:bit
             let timeMs = input.runningTime();
 
-            // 2. RESEARCH APPLIED: 5 Hz Vibrato Rate = 200ms per cycle
-            let cycleTimeMs = 200;
-            let timeInCycle = timeMs % cycleTimeMs;
+            // Vibrato speeds up as volume increases
+            // 200ms cycle (quiet) -> 140ms cycle (loud)
+            let cycleTimeMs = Math.map(vol, 30, 255, 200, 140);
 
-            // 3. Calculate position on the Sine wave
-            let angle = (timeInCycle / cycleTimeMs) * 2 * Math.PI;
-
-            // 4. RESEARCH APPLIED: ~1.5% frequency shift (subtle, beautiful depth)
-            let maxPitchShift = freqHz * 0.015;
+            let angle = ((timeMs % cycleTimeMs) / cycleTimeMs) * 2 * Math.PI;
+            let maxPitchShift = finalFreq * 0.015;
             let smoothShift = Math.sin(angle) * maxPitchShift;
 
-            // 5. Instantly play adjusted frequency and exit block
-            music.ringTone(Math.round(freqHz + smoothShift));
+            music.ringTone(Math.round(finalFreq + smoothShift));
         } else {
-            // Instantly play flat frequency and exit block
-            music.ringTone(freqHz);
+            music.ringTone(finalFreq);
         }
     }
 
     /**
-     * Stops any continuous music playing from this extension.
+     * Stops any continuous music playing.
      */
-    //% block="🛑 stop continuous music"
+    //% block="🛑 stop music"
     //% group="Music"
-    //% help="qbs-ext/docs/stop-continuous-music"
     //% weight=70
-    export function stopContinuousMusic(): void {
+    export function stopMusic(): void {
         music.ringTone(0);
     }
 }
